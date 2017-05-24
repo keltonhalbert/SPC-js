@@ -13,41 +13,74 @@
 </head>
 <body>
 
-<style>
-    .hazard-box {
-        height: 40px;
-        width: 250px;
-        position: absolute;
-        bottom: 90px;
-        left: 10px;
-        padding: 15px;
-        text-align: center;
-        font-color: #ffffff;
-    }
-
-    .percentage-box {
-        height: 40px;
-        width: 350px;
-        position: absolute;
-        bottom: 50px;
-        left: 10px;
-        padding: 15px;
-        text-align: center;
-    }
-
-    p {
-        font-family: 'Open Sans';
-        margin: 0;
-        font-size: 13px;
-    }
-</style>
-
+<script   src="https://code.jquery.com/jquery-3.2.1.min.js"   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="   crossorigin="anonymous"></script>
 <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/turf/v3.0.11/turf.min.js'></script>
 <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v0.18.0/mapbox-gl-draw.js'></script>
+<script src='/static/js/bootstrap.min.js'></script>
 <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v0.18.0/mapbox-gl-draw.css' type='text/css'/>
-
-<link href='/static/base.css' rel='stylesheet' />
+<link rel="stylesheet" href="/static/CSS/bootstrap.min.css" type='text/css'/>
+<link href='/static/CSS/base.css' rel='stylesheet' />
 <div id='map'></div>
+
+
+
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">ConvectiveChallenge</a>
+        </div>
+        <center>
+            <div class="navbar-collapse collapse" id="navbar-main">
+                <ul class="nav navbar-nav">
+                    <li><a href="./user/register">Register</a>
+                    </li>
+                    <li><a href="#">Rules</a>
+                    </li>
+                    <li><a href="#">About</a>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Forecast Actions<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">My Forecasts</a>
+                            </li>
+                            <li><a href="#">NOAA SPC Forecasts</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li><a href="#">Forecast Verification</a>
+                            </li>
+                            <li><a href="#">Leaderboard</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                {% if not current_user.is_authenticated %}
+                    <form class="navbar-form navbar-right" method="post" action="/">
+                        <div class="form-group">
+                            <input type="text" class="form" role="form" name="username" placeholder="Username"">
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form" role="form" name="password" placeholder="Password">
+                        </div>
+                        <button type="submit" value="Login" class="btn btn-default">Sign In</button>
+                    </form>
+                {% else %}
+                    <ul class="nav navbar-nav">
+                    <li><a href="#">Welcome, {{ current_user.username }}!</a>
+                    </li>
+                    </ul>
+                {% endif %}
+            </div>
+        </center>
+    </div>
+</div>
+
+
+
 <div class='hazard-box'>
   <div class='rounded-toggle inline'>
     <input id='tornado' type='radio' name='htoggle' value='tornado'>
@@ -79,13 +112,13 @@
 </div>
 
 
-<script src='/static/outlooks.js'></script>
+<script src='/static/js/outlooks.js'></script>
 <script>
 mapboxgl.accessToken = 'pk.eyJ1Ijoia2VsdG9uaGFsYmVydCIsImEiOiJjajJ0aHh3czYwMDIyMnZtcjdwdHE1d2t2In0.xMO1rcOCCEwLoIkOgBaAHg';
 /* eslint-disable */
 var map = new mapboxgl.Map({
     container: 'map', // container id
-    style: 'mapbox://styles/mapbox/dark-v9', //hosted style id
+    style: 'mapbox://styles/mapbox/light-v9', //hosted style id
     center: [-95, 40], // starting position
     zoom: 4 // starting zoom
 });
@@ -103,7 +136,7 @@ var draw = new MapboxDraw({
 });
 
 
-map.addControl(draw);
+map.addControl(draw, 'bottom-left');
 
 
 

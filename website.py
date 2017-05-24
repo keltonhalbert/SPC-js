@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, render_template_string
+from flask import Flask, render_template, render_template_string, request, session
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter
@@ -49,6 +49,7 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(100), nullable=False, server_default='')
     last_name = db.Column(db.String(100), nullable=False, server_default='')
 
+
 def create_app():
     """ Flask application factory """
    
@@ -59,9 +60,9 @@ def create_app():
     db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
     user_manager = UserManager(db_adapter, app)     # Initialize Flask-User
 
-    # The Home page is accessible to anyone
-    @app.route('/')
+    @app.route('/', methods=["GET","POST"])
     def home_page():
+        print dir(user_manager)
         return render_template('index.html')
 
     # The Members page is only accessible to authenticated users
@@ -77,6 +78,7 @@ def create_app():
                 <p><a href={{ url_for('members_page') }}>Members page</a> (login required)</p>
             {% endblock %}
             """)
+
 
     return app
 

@@ -3819,3 +3819,30 @@ img.inline, .inline           { display:inline-block; }
   /* TODO Depreciate */
   .noprint { display:none; }
   }
+
+    .hazard-box { 
+        height: 40px; 
+        width: 250px; 
+        position: absolute; 
+        bottom: 90px; 
+        left: 25px; 
+        padding: 15px; 
+        text-align: center; 
+        font-color: #ffffff; 
+    } 
+ 
+    .percentage-box { 
+        height: 40px; 
+        width: 375px; 
+        position: absolute; 
+        bottom: 50px; 
+        left: 25px; 
+        padding: 15px; 
+        text-align: center; 
+    } 
+ 
+    p { 
+        font-family: 'Open Sans'; 
+        margin: 0; 
+        font-size: 13px; 
+    } 
