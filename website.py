@@ -1,8 +1,10 @@
 import os
-from flask import Flask, render_template, render_template_string, request, session
+from flask import Flask, flash, redirect, render_template, render_template_string, request, session, current_app
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
-from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter
+from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, forms, views, signals 
+from flask_login import current_user, login_user, logout_user
+from flask_user.translations import gettext as _
 
 # Use a Class-based config to avoid needing a 2nd file
 # os.getenv() enables configuration through OS environment variables
@@ -62,8 +64,56 @@ def create_app():
 
     @app.route('/', methods=["GET","POST"])
     def home_page():
-        print dir(user_manager)
-        return render_template('index.html')
+        login_form =  user_manager.login_form(request.form)   
+        next = request.args.get('next', 'index.html')
+
+
+
+        # Process valid POST
+        if request.method=='POST' and login_form.validate():
+            # Retrieve User
+            user = None
+            user_email = None
+            if user_manager.enable_username:
+                # Find user record by username
+                user = user_manager.find_user_by_username(login_form.username.data)
+                user_email = None
+                # Find primary user_email record
+                if user and db_adapter.UserEmailClass:
+                    user_email = db_adapter.find_first_object(db_adapter.UserEmailClass,
+                        user_id=int(user.get_id()),
+                        is_primary=True,
+                        )
+                # Find user record by email (with form.username)
+                if not user and user_manager.enable_email:
+                    user, user_email = user_manager.find_user_by_email(login_form.username.data)
+            else:
+                # Find user by email (with form.email)
+                user, user_email = user_manager.find_user_by_email(login_form.email.data)
+
+            if user:
+                # Log user in
+                return views._do_login_user(user, login_form.next.data, login_form.remember_me.data)
+
+        if request.method != "POST":
+            return render_template('index.html', form=login_form)
+
+    @app.route('/logout')
+    def logout():
+        """ Sign the user out."""
+        # Send user_logged_out signal
+        signals.user_logged_out.send(current_app._get_current_object(), user=current_user)
+
+        # Use Flask-Login to sign out user
+        logout_user()
+
+        # Prepare one-time system message
+        flash(_('You have signed out successfully.'), 'success')
+
+        # Redirect to logout_next endpoint or '/'
+        next = request.args.get('next', '/')  # Get 'next' query param
+        return redirect(next)
+
 
     # The Members page is only accessible to authenticated users
     @app.route('/members')
