@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>{{ username }}'s forecast</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v0.36.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v0.36.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+    </style>
+</head>
+<body>
+
+<script   src="https://code.jquery.com/jquery-3.2.1.min.js"   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="   crossorigin="anonymous"></script>
+<script src='https://api.tiles.mapbox.com/mapbox.js/plugins/turf/v3.0.11/turf.min.js'></script>
+<script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v0.18.0/mapbox-gl-draw.js'></script>
+<script src='./bootstrap.min.js'></script>
+<link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v0.18.0/mapbox-gl-draw.css' type='text/css'/>
+<link rel="stylesheet" href="./bootstrap.min.css" type='text/css'/>
+<link href='./base.css' rel='stylesheet' />
+<div id='map'></div>
+
+
+
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">ConvectiveChallenge</a>
+        </div>
+        <center>
+            <div class="navbar-collapse collapse" id="navbar-main">
+                <ul class="nav navbar-nav">
+                    <li><a href="./user/register">Register</a>
+                    </li>
+                    <li><a href="#">Rules</a>
+                    </li>
+                    <li><a href="#">About</a>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Forecast Actions<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">My Forecasts</a>
+                            </li>
+                            <li><a href="#">NOAA SPC Forecasts</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li><a href="#">Forecast Verification</a>
+                            </li>
+                            <li><a href="#">Leaderboard</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                {% if not current_user.is_authenticated %}
+                {% from "flask_user/_macros.html" import render_field, render_checkbox_field, render_submit_field %}
+                    <form class="navbar-form navbar-right" method="post" action="" role="form">
+                            {{ form.hidden_tag() }}
+
+                            {# Username or Email field #}
+                            {% set field = form.username if user_manager.enable_username else form.email %}
+                            <div class="form-group {% if field.errors %}has-error{% endif %}">
+                                {{ field(class_='form-control', placeholder="Username", tabindex=110) }}
+                            </div>
+
+                            {# Password field #}
+                            {% set field = form.password %}
+                            <div class="form-group {% if field.errors %}has-error{% endif %}">
+                                {{ field(class_='form-control', placeholder="Password", tabindex=120) }}
+                            </div>
+                       {# Submit button #}
+                       {{ render_submit_field(form.submit, tabindex=180) }}
+                    </form>
+                {% else %}
+                    <ul class="nav navbar-nav">
+                    <li><a href="#">Welcome, {{ current_user.username }}!</a>
+                    </li>
+                    <li><a href="{{ url_for('logout') }}">Sign out</a>
+                    </li>
+                    </ul>
+                {% endif %}
+            </div>
+        </center>
+    </div>
+</div>
+
+
+
+<div class='hazard-box'>
+  <div class='rounded-toggle inline'>
+    <input id='tornado' type='radio' name='htoggle' value='tornado'>
+    <label for='tornado'>Tornado</label>
+    <input id='hail' type='radio' name='htoggle' value='hail'>
+    <label for='hail'>Hail</label>
+    <input id='wind' type='radio' name='htoggle' value='wind'>
+    <label for='wind'>Wind</label>
+  </div>
+</div>
+
+<div class='percentage-box'>
+  <div class='rounded-toggle inline'>
+    <input id='5' type='radio' name='ptoggle' value='5' checked='checked'>
+    <label for='5'>5%</label>
+    <input id='10' type='radio' name='ptoggle' value='10'>
+    <label for='10'>10%</label>
+    <input id='15' type='radio' name='ptoggle' value='15'>
+    <label for='15'>15%</label>
+    <input id='30' type='radio' name='ptoggle' value='30'>
+    <label for='30'>30%</label>
+    <input id='45' type='radio' name='ptoggle' value='45'>
+    <label for='45'>45%</label>
+    <input id='60' type='radio' name='ptoggle' value='60'>
+    <label for='60'>60%</label>
+    <input id='sig' type='radio' name='ptoggle' value='sig'>
+    <label for='sig'>Sig</label>
+  </div>
+</div>
+
+
+<script src='./outlooks.js'></script>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1Ijoia2VsdG9uaGFsYmVydCIsImEiOiJjajJ0aHh3czYwMDIyMnZtcjdwdHE1d2t2In0.xMO1rcOCCEwLoIkOgBaAHg';
+/* eslint-disable */
+var map = new mapboxgl.Map({
+    container: 'map', // container id
+    style: 'mapbox://styles/mapbox/light-v9', //hosted style id
+    center: [-95, 40], // starting position
+    zoom: 4 // starting zoom
+});
+
+
+var draw = new MapboxDraw({
+    displayControlsDefault: false,
+    controls: {
+        polygon: true,
+        trash: true
+    },
+
+    styles: outlookStyle
+
+});
+
+
+map.addControl(draw, 'bottom-left');
+
+
+
+var torButton = document.getElementById('tornado');
+var hailButton = document.getElementById('hail');
+var windButton = document.getElementById('wind');
+
+var fiveButton = document.getElementById('5');
+var tenButton = document.getElementById('10');
+var fifteenButton = document.getElementById('15');
+var thirtyButton = document.getElementById('30');
+var fourtyfiveButton = document.getElementById('45');
+var sixtyButton = document.getElementById('60');
+var sigButton = document.getElementById('sig');
+
+var activePolyType = "";
+var activePolyPercent = "5%"; // defaults to 5% as per radio button
+var activePolyId = "";
+
+
+torButton.onclick = function() {
+    activePolyType = "tor-";
+
+    createNewArea(activePolyType, activePolyPercent);
+    console.log(draw.getAll());
+};
+
+hailButton.onclick = function() {
+    activePolyType = "hail-";
+
+    createNewArea(activePolyType, activePolyPercent);
+    console.log(draw.getAll());
+};
+
+windButton.onclick = function() {
+    activePolyType = "wind-";
+
+    createNewArea(activePolyType, activePolyPercent);
+    console.log(draw.getAll());
+};
+
+
+fiveButton.onclick = function() {
+    activePolyPercent = "5%";
+
+    createNewArea(activePolyType, activePolyPercent);
+    console.log(draw.getAll());
+};
+
+tenButton.onclick = function() {
+    activePolyPercent = "10%";
+
+    createNewArea(activePolyType, activePolyPercent);
+    console.log(draw.getAll());
+};
+
+fifteenButton.onclick = function() {
+    activePolyPercent = "15%";
+
+    createNewArea(activePolyType, activePolyPercent);
+    console.log(draw.getAll());
+};
+
+thirtyButton.onclick = function() {
+    activePolyPercent = "30%";
+
+    createNewArea(activePolyType, activePolyPercent);
+    console.log(draw.getAll());
+};
+
+fourtyfiveButton.onclick = function() {
+    activePolyPercent = "45%";
+
+    createNewArea(activePolyType, activePolyPercent);
+    console.log(draw.getAll());
+};
+
+sixtyButton.onclick = function() {
+    activePolyPercent = "60%";
+
+    createNewArea(activePolyType, activePolyPercent);
+    console.log(draw.getAll());
+};
+
+sigButton.onclick = function() {
+    activePolyPercent = "sig";
+
+    createNewArea(activePolyType, activePolyPercent);
+    console.log(draw.getAll());
+};
+
+map.on('load', function() {
+
+
+});
+
+</script>
+
+
+</body>
+</html>
