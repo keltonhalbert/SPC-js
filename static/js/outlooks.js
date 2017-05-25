@@ -93,6 +93,8 @@ createNewArea = function(activePolyType, activePolyPercent) {
     // get the random ID of the selected risk area
     selectedAreaId = draw.getSelectedIds();
 
+    if (selectedAreaId.length == 0 ) { return };
+
     // create a polygon ID based on threat type
     // and risk percentage - combine with random int
     // ID to preserve separate polygons of same 
@@ -121,6 +123,20 @@ createNewArea = function(activePolyType, activePolyPercent) {
 
 
 var outlookStyle =  [
+  {
+    'id': 'gl-draw-polygon-fill-inactive',
+    'type': 'fill',
+    'filter': ['all',
+      ['==', 'active', 'false'],
+      ['==', '$type', 'Polygon'],
+      ['!=', 'mode', 'static']
+    ],
+    'paint': {
+      'fill-color': '#ad7c2e',
+      'fill-outline-color': '#ad7c2e',
+      'fill-opacity': 0.15
+    }
+  },
   {
     'id': 'tor-5%-risk-polygon-fill-inactive',
     'type': 'fill',
