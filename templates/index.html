@@ -125,6 +125,9 @@
 
 <script src='/static/js/outlooks.js'></script>
 <script>
+
+// on page load, check the session for user object
+
 mapboxgl.accessToken = 'pk.eyJ1Ijoia2VsdG9uaGFsYmVydCIsImEiOiJjajJ0aHh3czYwMDIyMnZtcjdwdHE1d2t2In0.xMO1rcOCCEwLoIkOgBaAHg';
 /* eslint-disable */
 var map = new mapboxgl.Map({
@@ -141,13 +144,17 @@ var draw = new MapboxDraw({
         polygon: true,
         trash: true
     },
-
+    // outlookStyle comes from outlooks.js
     styles: outlookStyle
 
 });
 
 
 map.addControl(draw, 'bottom-left');
+
+window.onload = function() {
+
+}
 
 
 
@@ -172,21 +179,21 @@ torButton.onclick = function() {
     activePolyType = "tor-";
 
     createNewArea(activePolyType, activePolyPercent);
-    console.log(draw.getAll());
+    sessionStorage.userOutlook = JSON.stringify(draw.getAll());
 };
 
 hailButton.onclick = function() {
     activePolyType = "hail-";
 
     createNewArea(activePolyType, activePolyPercent);
-    console.log(draw.getAll());
+    sessionStorage.userOutlook = JSON.stringify(draw.getAll());
 };
 
 windButton.onclick = function() {
     activePolyType = "wind-";
 
     createNewArea(activePolyType, activePolyPercent);
-    console.log(draw.getAll());
+    sessionStorage.userOutlook = JSON.stringify(draw.getAll());
 };
 
 
@@ -194,52 +201,59 @@ fiveButton.onclick = function() {
     activePolyPercent = "5%";
 
     createNewArea(activePolyType, activePolyPercent);
-    console.log(draw.getAll());
+    sessionStorage.userOutlook = JSON.stringify(draw.getAll());
 };
 
 tenButton.onclick = function() {
     activePolyPercent = "10%";
 
     createNewArea(activePolyType, activePolyPercent);
-    console.log(draw.getAll());
+    sessionStorage.userOutlook = JSON.stringify(draw.getAll());
 };
 
 fifteenButton.onclick = function() {
     activePolyPercent = "15%";
 
     createNewArea(activePolyType, activePolyPercent);
-    console.log(draw.getAll());
+    sessionStorage.userOutlook = JSON.stringify(draw.getAll());
 };
 
 thirtyButton.onclick = function() {
     activePolyPercent = "30%";
 
     createNewArea(activePolyType, activePolyPercent);
-    console.log(draw.getAll());
+    sessionStorage.userOutlook = JSON.stringify(draw.getAll());
 };
 
 fourtyfiveButton.onclick = function() {
     activePolyPercent = "45%";
 
     createNewArea(activePolyType, activePolyPercent);
-    console.log(draw.getAll());
+    sessionStorage.userOutlook = JSON.stringify(draw.getAll());
 };
 
 sixtyButton.onclick = function() {
     activePolyPercent = "60%";
 
     createNewArea(activePolyType, activePolyPercent);
-    console.log(draw.getAll());
+    sessionStorage.userOutlook = JSON.stringify(draw.getAll());
 };
 
 sigButton.onclick = function() {
     activePolyPercent = "sig";
 
     createNewArea(activePolyType, activePolyPercent);
-    console.log(draw.getAll());
+    sessionStorage.userOutlook = JSON.stringify(draw.getAll());
 };
 
 map.on('load', function() {
+
+    if ( sessionStorage.userOutlook != null ) {
+
+        userOutlook = JSON.parse(sessionStorage.userOutlook);
+        draw.set(userOutlook);
+    }
+    console.log(sessionStorage.userOutlook);
 
 
 });
