@@ -173,6 +173,12 @@ sigButton.onclick = function() {
 
 map.on('load', function() {
 
+    if ( sessionStorage.userOutlook != null ) {
+
+        userOutlook = JSON.parse(sessionStorage.userOutlook);
+        draw.set(userOutlook);
+    }
+    console.log(sessionStorage.userOutlook);
 
 });
 
